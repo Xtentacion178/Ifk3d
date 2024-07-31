@@ -1,0 +1,75 @@
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local player = Players.LocalPlayer
+
+-- Create ScreenGui
+local screenGui = Instance.new("ScreenGui")
+screenGui.Parent = player:WaitForChild("PlayerGui")
+screenGui.ResetOnSpawn = false
+
+-- Create Toggle Button
+local toggleButton = Instance.new("TextButton")
+toggleButton.Size = UDim2.new(0, 120, 0, 30) -- Ajustado para tamanho menor
+toggleButton.Position = UDim2.new(0, 10, 0, 10) -- Posicionado no canto superior esquerdo com algum padding
+toggleButton.Text = "Enable Antifling"
+toggleButton.TextColor3 = Color3.fromRGB(0, 0, 0) -- Preto para o texto
+toggleButton.BackgroundColor3 = Color3.fromRGB(0, 255, 0) -- Verde Limão
+toggleButton.Parent = screenGui
+toggleButton.Draggable = false
+
+local antiflingConnection
+
+-- Antifling Function
+local function enableAntifling()
+    if antiflingConnection then
+        antiflingConnection:Disconnect()
+        antiflingConnection = nil
+    end
+    antiflingConnection = RunService.Stepped:Connect(function()
+        for _, otherPlayer in pairs(Players:GetPlayers()) do
+            if otherPlayer ~= Players.LocalPlayer and otherPlayer.Character then
+                for _, part in pairs(otherPlayer.Character:GetDescendants()) do
+                    if part:IsA("BasePart") then
+                        part.CanCollide = false
+                    end
+                end
+            end
+        end
+    end)
+end
+
+-- Unantifling Function
+local function disableAntifling()
+    if antiflingConnection then
+        antiflingConnection:Disconnect()
+        antiflingConnection = nil
+    end
+    -- Resetting CanCollide to true should be handled here if needed
+    for _, otherPlayer in pairs(Players:GetPlayers()) do
+        if otherPlayer ~= Players.LocalPlayer and otherPlayer.Character then
+            for _, part in pairs(otherPlayer.Character:GetDescendants()) do
+                if part:IsA("BasePart") then
+                    part.CanCollide = true
+                end
+            end
+        end
+    end
+end
+
+-- Toggle Functionality
+local antiflingEnabled = false
+
+toggleButton.MouseButton1Click:Connect(function()
+    if antiflingEnabled then
+        disableAntifling()
+        toggleButton.Text = "Enable Antifling"
+        toggleButton.TextColor3 = Color3.fromRGB(0, 0, 0) -- Preto para o texto
+        toggleButton.BackgroundColor3 = Color3.fromRGB(0, 255, 0) -- Verde Limão
+    else
+        enableAntifling()
+        toggleButton.Text = "Disable Antifling"
+        toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255) -- Branco para o texto
+        toggleButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0) -- Vermelho
+    end
+    antiflingEnabled = not antiflingEnabled
+end)
